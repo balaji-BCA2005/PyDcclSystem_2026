@@ -115,6 +115,11 @@ def profile():
     if request.method == 'POST':
         full_name = request.form.get('full_name')
         degree = request.form.get('degree')
+        
+        # 👇 YE DO LINES TUMHARE CODE MEIN MISSING THI 👇
+        current_year = request.form.get('current_year') 
+        division = request.form.get('division')
+        
         specialization = request.form.get('specialization')
         cgpa = request.form.get('cgpa')
         passing_year = request.form.get('passing_year')
@@ -122,19 +127,25 @@ def profile():
         projects = request.form.get('projects')
         internship_exp = request.form.get('internship_exp')
         job_type = request.form.get('preferred_job_type')
+        
+        # 👇 UPDATE QUERY MEIN BHI current_year AUR division ADD KIYA HAI 👇
         cursor.execute("""
             UPDATE students SET 
             full_name=%s, degree=%s, specialization=%s, cgpa=%s,
             passing_year=%s, technical_skills=%s, projects=%s,
-            internship_exp=%s, preferred_job_type=%s
+            internship_exp=%s, preferred_job_type=%s,
+            current_year=%s, division=%s
             WHERE id=%s
         """,(full_name, degree, specialization, cgpa, passing_year,
-             technical_skills, projects, internship_exp, job_type, student_id))
+             technical_skills, projects, internship_exp, job_type, 
+             current_year, division, student_id))
+             
         conn.commit()
         session['full_name'] = full_name
         cursor.close()
         conn.close()
         return redirect(url_for('dashboard'))
+        
     cursor.execute("SELECT * FROM students WHERE id=%s",(student_id,))
     current_data = cursor.fetchone()
     cursor.close()
