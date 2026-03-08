@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard | SmartPlacement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background-color: #f0f4f8; color: #1e293b; line-height: 1.6; }
+        .container { max-width: 1250px; margin: 20px auto; padding: 0 15px; }
+        .navbar { background: linear-gradient(90deg, #1e3a8a 0%, #3b82f6 100%); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); margin-bottom: 20px; color: white; }
+        .navbar h2 { font-size: 20px; font-weight: 800; }
+        .navbar h2 span { color: #facc15; }
+        .logout-btn { background: #ef4444; color: #fff; padding: 8px 16px; text-decoration: none; border-radius: 8px; font-weight: 700; transition: 0.3s; font-size: 13px; }
+        .welcome-card { background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); padding: 30px; border-radius: 20px; box-shadow: 0 15px 30px rgba(99, 102, 241, 0.3); display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; color: white; gap: 20px; }
+        .user-info h2 { font-size: 26px; font-weight: 800; margin-bottom: 5px; }
+        .user-info b { color: #fde047; }
+        .action-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+        .btn { padding: 12px 18px; border-radius: 10px; font-weight: 700; font-size: 13px; text-decoration: none; transition: 0.3s all; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; color: white; }
+        .btn-resume { background: #10b981; }
+        .btn-history { background: #f59e0b; }
+        .btn-profile { background: #0ea5e9; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 3px solid #cbd5e1; padding-bottom: 10px; }
+        .section-title { font-size: 20px; color: #1e293b; font-weight: 800; }
+        .filter-badge { background: #3b82f6; color: white; padding: 5px 12px; border-radius: 15px; font-size: 12px; font-weight: 700; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .card { background: #ffffff; border-radius: 16px; padding: 20px; transition: 0.3s all; border: 2px solid #e2e8f0; display: flex; flex-direction: column; box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-top: 5px solid #3b82f6; }
+        .card:hover { transform: translateY(-5px); border-top-color: #8b5cf6; }
+        .card h3 { color: #0f172a; font-size: 20px; font-weight: 800; margin-bottom: 12px; }
+        .job-detail { color: #334155; font-size: 14px; margin-bottom: 8px; font-weight: 600; }
+        .skills-container { margin: 15px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+        .badge { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        .btn-test { display: flex; justify-content: center; align-items: center; gap: 8px; width: 100%; background: #3b82f6; color: white; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 700; margin-top: auto; }
+        @media (max-width: 768px) { .navbar { flex-direction: row; padding: 12px 15px; } .navbar h2 { font-size: 18px; } .welcome-card { flex-direction: column; text-align: center; padding: 25px 15px; } .user-info h2 { font-size: 22px; } .user-info p { font-size: 14px; } .action-btns { justify-content: center; width: 100%; } .btn { width: 100%; justify-content: center; font-size: 14px; } .section-header { flex-direction: column; align-items: flex-start; gap: 10px; } .filter-badge { width: 100%; text-align: center; } .grid-container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="navbar">
+        <h2>Smart<span>Placement.</span></h2>
+        <a href="{{ url_for('logout') }}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <div class="welcome-card">
+        <div class="user-info">
+            <h2>Welcome, {{ user.full_name }}! 👋</h2>
+            <p>Degree: <b>{{ user.degree or 'Not Set' }}</b> | Current CGPA: <b>{{ user.cgpa or '0.0' }}</b></p>
+        </div>
+
+        <div class="action-btns">
+            <a href="{{ url_for('generate_resume') }}" class="btn btn-resume"><i class="fas fa-file-pdf"></i> Resume</a>
+            <a href="{{ url_for('history') }}" class="btn btn-history"><i class="fas fa-history"></i> History</a>
+            <a href="{{ url_for('profile') }}" class="btn btn-profile"><i class="fas fa-user-edit"></i> Profile</a>
+        </div>
+    </div>
+
+    <div class="section-header">
+        <h3 class="section-title"><i class="fas fa-briefcase" style="color: #3b82f6; margin-right: 10px;"></i> Jobs for You</h3>
+        <span class="filter-badge"><i class="fas fa-filter"></i> CGPA &ge; {{ student_cgpa }}</span>
+    </div>
+    
+    <div class="grid-container">
+        {% for company in companies %}
+        <div class="card">
+            <div>
+                <h3><i class="far fa-building"></i> {{ company.company_name }}</h3>
+                <div class="job-detail"><i class="fas fa-user-tie" style="color:#8b5cf6;"></i> Role: <b>{{ company.job_role }}</b></div>
+                <div class="job-detail"><i class="fas fa-rupee-sign" style="color:#10b981;"></i> Package: <b>{{ company.salary_package }}</b></div>
+                <div class="job-detail"><i class="fas fa-map-marker-alt" style="color:#ef4444;"></i> Location: <b>{{ company.location }}</b></div>
+                <div class="skills-container">
+                    {% for ds in company.display_skills %}
+                    <span class="badge">{{ ds }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <a href="{{ url_for('quiz', job_id=company.id) }}" class="btn-test">Take Test <i class="fas fa-arrow-right"></i></a>
+        </div>
+        {% else %}
+        <div class="empty-state" style="grid-column: 1/-1; background:#fff; padding:40px; text-align:center; border-radius:15px; border:2px dashed #cbd5e1;">
+            <i class="fas fa-search-minus" style="font-size:50px; color:#94a3b8;"></i>
+            <h3 style="margin-top:15px;">No Exact Matches</h3>
+            <p style="color:#64748b;">Update your skills in the profile section!</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</body>
+</html>

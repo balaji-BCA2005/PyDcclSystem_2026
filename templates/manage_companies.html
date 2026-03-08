@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Companies - Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; margin: 0; display: flex; color: #333; }
+        .sidebar { width: 260px; background: #0b1120; min-height: 100vh; padding: 20px 0; color: #fff; position: fixed; }
+        .sidebar-brand { text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 40px; color: #1877f2; }
+        .nav-link { display: block; padding: 15px 25px; color: #94a3b8; text-decoration: none; font-size: 15px; transition: 0.3s; border-left: 4px solid transparent; }
+        .nav-link:hover, .nav-link.active { background: #1e293b; color: #fff; border-left: 4px solid #1877f2; }
+        .nav-link i { margin-right: 15px; width: 20px; text-align: center; }
+        .main-content { flex: 1; margin-left: 260px; padding: 30px 40px; }
+        .top-header { background: #fff; padding: 20px 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 30px; border-left: 5px solid #1877f2; }
+        .grid-layout { display: grid; grid-template-columns: 1fr 2fr; gap: 30px; }
+        @media (max-width: 1000px) { .grid-layout { grid-template-columns: 1fr; } }
+        .form-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); align-self: start; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; font-size: 13px; color: #555; margin-bottom: 5px; }
+        .form-group input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Poppins'; box-sizing: border-box; outline: none; }
+        .form-group input:focus { border-color: #1877f2; }
+        .btn-primary { background: #1877f2; color: white; padding: 12px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-primary:hover { background: #0b5ed7; }
+        .table-card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; color: #475569; padding: 15px; text-align: left; font-size: 13px; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
+        .badge-skill { background: #eef2f7; color: #1877f2; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block; margin: 2px; }
+        .btn-delete { background: #fee2e2; color: #ef4444; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 12px; transition: 0.3s; }
+        .btn-delete:hover { background: #ef4444; color: #fff; }
+        .alert-success { background: #dcfce7; color: #166534; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; border: 1px solid #bbf7d0; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand"><i class="fas fa-user-shield"></i> Admin Panel</div>
+        <a href="{{ url_for('admin_dashboard') }}" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
+        <a href="{{ url_for('manage_students') }}" class="nav-link"><i class="fas fa-users"></i> Manage Students</a>
+        <a href="{{ url_for('manage_companies') }}" class="nav-link active"><i class="fas fa-building"></i> Manage Companies</a>
+        <a href="{{ url_for('manage_questions') }}" class="nav-link"><i class="fas fa-file-alt"></i> Question Bank</a>
+        <a href="{{ url_for('admin_logout') }}" class="nav-link" style="margin-top: auto;"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+
+    <div class="main-content">
+        <div class="top-header">
+            <h2 style="margin: 0; color: #0b2046;"><i class="fas fa-building"></i> Manage Placement Drives</h2>
+            <p style="margin: 5px 0 0 0; color: #666; font-size: 14px;">Add new company opportunities or remove expired ones.</p>
+        </div>
+
+        {% if msg == 'added' %}
+            <div class="alert-success"><i class="fas fa-check-circle"></i> New company has been successfully listed!</div>
+        {% elif msg == 'deleted' %}
+            <div class="alert-success" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca;"><i class="fas fa-trash"></i> Company record removed from the portal.</div>
+        {% endif %}
+
+        {% if error %}
+            <div class="alert-success" style="background: #fee2e2; color: #b91c1c; border-color: #fecaca;">
+                <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <div class="grid-layout">
+            <div class="form-card">
+                <h3 style="margin-top:0; color:#0b2046;"><i class="fas fa-plus-circle"></i> Add New Company</h3>
+                <form method="POST" action="{{ url_for('manage_companies') }}">
+                    <div class="form-group"><label>Company Name</label><input type="text" name="company_name" required></div>
+                    <div class="form-group"><label>Target Job Role</label><input type="text" name="job_role" required></div>
+                    <div class="form-group"><label>Required CGPA (Min)</label><input type="number" step="0.1" name="required_cgpa" required></div>
+                    <div class="form-group"><label>Experience Required</label><input type="text" name="experience_req" required></div>
+                    <div class="form-group"><label>Required Skills (Comma separated)</label><input type="text" name="required_skills" required></div>
+                    <div class="form-group"><label>Salary Package (LPA)</label><input type="text" name="salary_package" required></div>
+                    <div class="form-group"><label>Job Location</label><input type="text" name="location" required></div>
+                    <button type="submit" name="add_company" class="btn-primary"><i class="fas fa-save"></i> Publish Job</button>
+                </form>
+            </div>
+
+            <div class="table-card">
+                <h3 style="margin-top:0; color:#0b2046;"><i class="fas fa-list"></i> Active Companies</h3>
+                {% if companies %}
+                    <table>
+                        <thead>
+                            <tr><th>Company Details</th><th>Criteria & Salary</th><th>Required Skills</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for row in companies %}
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 700; color: #1877f2; font-size: 15px;">{{ row.company_name }}</div>
+                                        <div style="color: #555; font-size: 13px; font-weight: 600;"><i class="fas fa-user-tie"></i> {{ row.job_role }}</div>
+                                        <div style="color: #888; font-size: 12px;"><i class="fas fa-map-marker-alt"></i> {{ row.location }}</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-weight: 700; color: #28a745; font-size: 13px;">💰 {{ row.salary_package }}</div>
+                                        <div style="font-size: 12px; color: #666; font-weight: bold; margin-top: 3px;">Min CGPA: {{ row.required_cgpa }}</div>
+                                        <div style="font-size: 11px; color: #999; margin-top: 3px;">Exp: {{ row.experience_req or 'N/A' }}</div>
+                                    </td>
+                                    <td style="max-width: 200px;">
+                                        {% for skill in row.required_skills.split(',') %}
+                                            <span class='badge-skill'>{{ skill.strip() }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('manage_companies', delete=row.id) }}" class="btn-delete" onclick="return confirm('Delete this company? This will also remove test histories associated with this job.');">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div style="text-align: center; padding: 30px;">
+                        <i class="far fa-folder-open" style="font-size: 40px; color: #ccc; margin-bottom: 10px;"></i>
+                        <p style="color: #888; margin: 0;">No companies listed yet. Use the form to add one.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

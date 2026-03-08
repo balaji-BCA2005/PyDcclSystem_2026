@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login | SmartPlacement</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* Tumhari original CSS yahan waisi hi rahegi, maine koi change nahi kiya hai */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0b1120; position: relative; overflow: hidden; color: #fff; }
+        .blob-1, .blob-2 { position: absolute; border-radius: 50%; filter: blur(80px); z-index: 1; }
+        .blob-1 { width: 400px; height: 400px; background: #1877f2; top: -100px; left: -100px; opacity: 0.3; animation: float 6s ease-in-out infinite alternate; }
+        .blob-2 { width: 350px; height: 350px; background: #00d2ff; bottom: -50px; right: -50px; opacity: 0.2; animation: float 8s ease-in-out infinite alternate-reverse; }
+        @keyframes float { 0% { transform: translate(0, 0); } 100% { transform: translate(40px, 40px); } }
+        .login-box { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 50px 40px; border-radius: 24px; width: 100%; max-width: 420px; z-index: 2; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+        .login-box h2 { font-size: 32px; font-weight: 800; margin-bottom: 5px; text-align: center; color: #fff; }
+        .login-box p { color: #94a3b8; text-align: center; margin-bottom: 35px; font-size: 15px; }
+        .error-msg { background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.5); color: #ff6b6b; padding: 12px; border-radius: 10px; text-align: center; font-size: 14px; margin-bottom: 20px; }
+        .success-msg { background: rgba(46, 204, 113, 0.1); border: 1px solid rgba(46, 204, 113, 0.5); color: #2ecc71; padding: 12px; border-radius: 10px; text-align: center; font-size: 14px; margin-bottom: 20px; }
+        .input-group { margin-bottom: 25px; position: relative; }
+        .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 18px; }
+        .input-group input { width: 100%; padding: 16px 16px 16px 50px; background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: 0.3s; }
+        .input-group input::placeholder { color: #64748b; }
+        .input-group input:focus { border-color: #1877f2; background: rgba(0, 0, 0, 0.4); box-shadow: 0 0 15px rgba(24, 119, 242, 0.3); }
+        .options { display: flex; justify-content: flex-end; font-size: 13px; margin-bottom: 25px; margin-top: -10px; }
+        .options a { color: #00d2ff; text-decoration: none; transition: 0.3s; font-weight: 600; }
+        .options a:hover { text-decoration: underline; color: #fff; }
+        .btn-login { width: 100%; padding: 16px; background: linear-gradient(135deg, #1877f2, #00d2ff); border: none; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(24, 119, 242, 0.3); text-transform: uppercase; letter-spacing: 1px; }
+        .btn-login:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(24, 119, 242, 0.5); }
+        .register-link { text-align: center; margin-top: 30px; font-size: 15px; color: #94a3b8; }
+        .register-link a { color: #00d2ff; text-decoration: none; font-weight: 600; }
+        .register-link a:hover { text-decoration: underline; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="blob-1"></div>
+    <div class="blob-2"></div>
+
+    <div class="login-box">
+        <h2>Welcome Back</h2>
+        <p>Login to access your placement dashboard.</p>
+
+        {% if msg == 'registered' %}
+            <div class="success-msg">
+                <i class="fas fa-check-circle"></i> Registration successful! Please login.
+            </div>
+        {% endif %}
+
+        {% if error %}
+            <div class="error-msg">
+                <i class="fas fa-exclamation-triangle"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email Address" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+
+            <div class="options">
+                <a href="#">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn-login"><i class="fas fa-sign-in-alt"></i> Login Now</button>
+        </form>
+
+        <div class="register-link">
+            New student? <a href="{{ url_for('register') }}">Create an Account</a>
+        </div>
+    </div>
+</body>
+</html>

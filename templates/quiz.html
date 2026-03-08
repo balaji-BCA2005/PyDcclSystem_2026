@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Skill Assessment - 20 Mins</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7fa; padding: 0; margin: 0; color: #333; }
+        .pro-header { position: fixed; top: 0; left: 0; width: 100%; background: rgba(255,255,255,0.95); z-index: 9999; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 15px 0; border-bottom: 3px solid #1877f2; display: flex; justify-content: center; }
+        .header-content { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        .quiz-container { max-width: 800px; margin: 100px auto 40px auto; background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .question-box { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .question-box p { font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; }
+        .badge { background: #0d6efd; color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; float: right; }
+        .option-label { display: block; margin-bottom: 8px; cursor: pointer; background: #f8f9fa; padding: 10px; border-radius: 6px; border: 1px solid #ddd; transition: 0.3s; }
+        .option-label:hover { background: #eef2f7; border-color: #0d6efd; }
+        .btn-submit { display: block; width: 100%; background: #28a745; color: white; padding: 15px; font-size: 1.2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .btn-submit:hover { background: #218838; }
+        @keyframes move { 0% { background-position: 0% 0; } 100% { background-position: 100% 0; } }
+    </style>
+</head>
+<body>
+    <div class="pro-header">
+        <div class="header-content">
+            <div style="width: 70%;">
+                <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: bold; color: #555; margin-bottom: 5px;">
+                    <span>Test Progress</span>
+                    <span id="progressText">0 / 20 Answered</span>
+                </div>
+                <div style="width: 100%; background: #eef2f7; height: 10px; border-radius: 10px; overflow: hidden;">
+                    <div id="progressBar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #00c6ff, #0072ff); background-size: 300% 100%; animation: move 3s linear infinite; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            <div id="timerBox" style="background: #dc3545; color: white; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 10px rgba(220,53,69,0.3);">
+                <i class="fas fa-clock"></i> <span id="timeDisplay">20:00</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-container">
+        <div id="cheatWarning" style="display: none; background: #fff3cd; color: #856404; padding: 15px; border-radius: 8px; border: 1px solid #ffeeba; margin-bottom: 20px; font-weight: bold; text-align: center;">
+            <i class="fas fa-exclamation-triangle"></i> Warning: Tab switching detected! Test will auto-submit after <span id="warningCount">3</span> more warnings.
+        </div>
+
+        <h2 style="color: #0056b3; margin-top: 0;">Skill Assessment Test</h2>
+        <p style="color: #666; margin-bottom: 30px;">Answer all 20 questions. Don't switch tabs or minimize the browser.</p>
+
+        <form id="quizForm" action="{{ url_for('result') }}" method="POST">
+            <input type="hidden" name="job_id" value="{{ job_id }}">
+            
+            {% for q in final_questions %}
+                <div class="question-box">
+                    <span class="badge">{{ q.skill_tag }}</span>
+                    <p>Q{{ loop.index }}. {{ q.question_text }}</p>
+                    
+                    <label class="option-label"><input type="radio" name="ans[{{ q.id }}]" value="A" required> A) {{ q.option_a }}</label>
+                    <label class="option-label"><input type="radio" name="ans[{{ q.id }}]" value="B"> B) {{ q.option_b }}</label>
+                    <label class="option-label"><input type="radio" name="ans[{{ q.id }}]" value="C"> C) {{ q.option_c }}</label>
+                    <label class="option-label"><input type="radio" name="ans[{{ q.id }}]" value="D"> D) {{ q.option_d }}</label>
+                </div>
+            {% endfor %}
+            
+            <button type="submit" class="btn-submit">Submit Quiz</button>
+        </form>
+    </div>
+
+    <script>
+        const totalQuestions = 20;
+        const radios = document.querySelectorAll('input[type="radio"]');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const answeredCount = document.querySelectorAll('input[type="radio"]:checked').length;
+                const percent = (answeredCount / totalQuestions) * 100;
+                progressBar.style.width = percent + '%';
+                progressText.innerText = `${answeredCount} / ${totalQuestions} Answered`;
+            });
+        });
+
+        let isSubmitting = false;
+        const quizForm = document.getElementById('quizForm');
+        quizForm.addEventListener('submit', function() { isSubmitting = true; });
+
+        let warningsLeft = 3;
+        const warningBanner = document.getElementById('cheatWarning');
+        const warningCountText = document.getElementById('warningCount');
+        let isTabSwitched = false; 
+
+        function triggerWarning() {
+            if (isSubmitting) return; 
+            if (!isTabSwitched) {
+                isTabSwitched = true; 
+                warningsLeft--;
+                if (warningsLeft <= 0) {
+                    isSubmitting = true; 
+                    alert("🚨 Anti-Cheat Violation! You switched tabs too many times. Your test is being auto-submitted.");
+                    quizForm.submit(); 
+                } else {
+                    warningBanner.style.display = "block";
+                    warningCountText.innerText = warningsLeft;
+                    alert(`⚠️ WARNING! Tab switching or leaving the test window is NOT allowed. You have ${warningsLeft} warning(s) left.`);
+                }
+            }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+            if (isSubmitting) return; 
+            if (document.hidden || document.visibilityState === 'hidden') { triggerWarning(); } 
+            else { isTabSwitched = false; }
+        });
+
+        window.addEventListener("blur", () => {
+            if (isSubmitting) return; 
+            if (document.activeElement !== document.body) {
+                setTimeout(() => { if (!document.hasFocus() && !isSubmitting) { triggerWarning(); } }, 500);
+            }
+        });
+
+        window.addEventListener("focus", () => { isTabSwitched = false; });
+        document.addEventListener("contextmenu", (e) => { e.preventDefault(); alert("⚠️ Right-click is not allowed during the exam!"); });
+
+        let timeRemaining = 20 * 60; 
+        const timeDisplay = document.getElementById('timeDisplay');
+        const timerBox = document.getElementById('timerBox');
+
+        const countdown = setInterval(() => {
+            let minutes = Math.floor(timeRemaining / 60);
+            let seconds = timeRemaining % 60;
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            timeDisplay.innerText = `${minutes}:${seconds}`;
+            
+            if(timeRemaining < 180) { timerBox.style.background = "#ffc107"; timerBox.style.color = "#000"; }
+            if(timeRemaining < 60) { timerBox.style.background = "#850000"; timerBox.style.color = "#fff"; }
+
+            if (timeRemaining <= 0) {
+                clearInterval(countdown);
+                isSubmitting = true; 
+                alert("⏳ Time's up! Auto-submitting your test.");
+                quizForm.submit();
+            }
+            timeRemaining--;
+        }, 1000);
+    </script>
+</body>
+</html>

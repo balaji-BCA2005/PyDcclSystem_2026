@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Profile - Smart Placement</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px; color: #334155; }
+        .profile-container { background: #ffffff; width: 100%; max-width: 850px; padding: 50px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+        .header-section { text-align: center; margin-bottom: 40px; }
+        .header-section h2 { color: #0f172a; font-size: 32px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .header-section p { color: #64748b; font-size: 15px; font-weight: 500; }
+        .avatar-icon { width: 70px; height: 70px; background: #e0e7ff; color: #4338ca; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; margin: 0 auto 15px auto; box-shadow: 0 10px 20px rgba(67, 56, 202, 0.1); }
+        .alert { padding: 14px; border-radius: 12px; text-align: center; margin-bottom: 25px; font-weight: 600; font-size: 14px; }
+        .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .full-width { grid-column: span 2; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-size: 13px; font-weight: 700; color: #475569; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 14px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; font-size: 15px; color: #0f172a; transition: all 0.3s ease; outline: none; font-weight: 500; }
+        .input-group select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2394a3b8%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat, repeat; background-position: right .7em top 50%, 0 0; background-size: .65em auto, 100%; }
+        .input-group textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus { background: #ffffff; border-color: #3b82f6; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .highlight-input input { border-color: #cbd5e1; background: #f0f9ff; color: #0369a1; }
+        .highlight-input input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+        .action-group { grid-column: 1 / -1; display: flex; gap: 16px; margin-top: 20px; }
+        .btn { padding: 16px 24px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s all; text-align: center; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; text-decoration: none; }
+        .btn-cancel { flex: 1; background: #f1f5f9; color: #64748b; }
+        .btn-cancel:hover { background: #e2e8f0; color: #0f172a; }
+        .btn-save { flex: 2; background: #2563eb; color: #ffffff; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
+        .btn-save:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 15px 25px rgba(37, 99, 235, 0.3); }
+        .section-title { grid-column: 1 / -1; font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 15px; margin-bottom: -5px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+    </style>
+</head>
+<body>
+<div class="profile-container">
+    <div class="header-section">
+        <div class="avatar-icon"><i class="fas fa-user-astronaut"></i></div>
+        <h2>Professional Identity</h2>
+        <p>Complete your profile to unlock AI-driven job matches.</p>
+    </div>
+
+    {% if error %}
+        <div class="alert alert-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('profile') }}" class="form-grid">
+        <div class="section-title">Personal Details</div>
+
+        <div class="input-group full-width">
+            <label>Full Name</label>
+            <input type="text" name="full_name" value="{{ current_data.full_name or '' }}" required placeholder="Enter your full name">
+        </div>
+
+        <div class="section-title">Academic Background</div>
+
+        <div class="input-group">
+            <label>Degree</label>
+            <select name="degree" required>
+                <option value="BCA" {% if current_data.degree == 'BCA' %}selected{% endif %}>BCA</option>
+                <option value="MCA" {% if current_data.degree == 'MCA' %}selected{% endif %}>MCA</option>
+                <option value="B.TECH" {% if current_data.degree == 'B.TECH' %}selected{% endif %}>B.TECH</option>
+                <option value="BSC IT" {% if current_data.degree == 'BSC IT' %}selected{% endif %}>BSC IT</option>
+                <option value="M.TECH" {% if current_data.degree == 'M.TECH' %}selected{% endif %}>M.TECH</option>
+                <option value="B.E." {% if current_data.degree == 'B.E.' %}selected{% endif %}>B.E.</option>
+                <option value="BSC CS" {% if current_data.degree == 'BSC CS' %}selected{% endif %}>BSC CS</option>
+                <option value="MSC IT" {% if current_data.degree == 'MSC IT' %}selected{% endif %}>MSC IT</option>
+                <option value="MSC CS" {% if current_data.degree == 'MSC CS' %}selected{% endif %}>MSC CS</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Specialization</label>
+            <input type="text" name="specialization" value="{{ current_data.specialization or '' }}" placeholder="e.g. Computer Science" required>
+        </div>
+
+        <div class="input-group">
+            <label>Current Year</label>
+            <select name="current_year" required>
+                <option value="First Year" {% if current_data.current_year == 'First Year' %}selected{% endif %}>First Year (FY)</option>
+                <option value="Second Year" {% if current_data.current_year == 'Second Year' %}selected{% endif %}>Second Year (SY)</option>
+                <option value="Third Year" {% if current_data.current_year == 'Third Year' %}selected{% endif %}>Third Year (TY)</option>
+                <option value="Final Year" {% if current_data.current_year == 'Final Year' %}selected{% endif %}>Final Year</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Division</label>
+            <select name="division" required>
+                <option value="A" {% if current_data.division == 'A' %}selected{% endif %}>Div A</option>
+                <option value="B" {% if current_data.division == 'B' %}selected{% endif %}>Div B</option>
+                <option value="C" {% if current_data.division == 'C' %}selected{% endif %}>Div C</option>
+                <option value="D" {% if current_data.division == 'D' %}selected{% endif %}>Div D</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>Current CGPA</label>
+            <input type="number" step="0.01" name="cgpa" value="{{ current_data.cgpa or '' }}" placeholder="e.g. 8.5" required>
+        </div>
+
+        <div class="input-group">
+            <label>Passing Year</label>
+            <input type="number" name="passing_year" value="{{ current_data.passing_year or '' }}" placeholder="e.g. 2026" required>
+        </div>
+
+        <div class="section-title">Skills & Experience</div>
+
+        <div class="input-group full-width highlight-input">
+            <label>Technical Skills (Comma Separated)</label>
+            <input type="text" name="technical_skills" value="{{ current_data.technical_skills or '' }}" placeholder="e.g. PYTHON, REACT, SQL" required>
+        </div>
+
+        <div class="input-group full-width">
+            <label>Key Projects</label>
+            <textarea name="projects" placeholder="Briefly describe your top 2 projects..." required>{{ current_data.projects or '' }}</textarea>
+        </div>
+
+        <div class="input-group">
+            <label>Internship (Months)</label>
+            <input type="number" name="internship_exp" value="{{ current_data.internship_exp or '0' }}" required>
+        </div>
+
+        <div class="input-group">
+            <label>Target Job Role</label>
+            <select name="preferred_job_type" required>
+                <option value="Java Full Stack Developer" {% if current_data.preferred_job_type == 'Java Full Stack Developer' %}selected{% endif %}>Java Full Stack Developer</option>
+                <option value="Python Django Developer" {% if current_data.preferred_job_type == 'Python Django Developer' %}selected{% endif %}>Python Django Developer</option>
+                <option value="PHP Laravel Developer" {% if current_data.preferred_job_type == 'PHP Laravel Developer' %}selected{% endif %}>PHP Laravel Developer</option>
+                <option value="React.js Developer" {% if current_data.preferred_job_type == 'React.js Developer' %}selected{% endif %}>React.js Developer</option>
+                <option value="Data Analyst" {% if current_data.preferred_job_type == 'Data Analyst' %}selected{% endif %}>Data Analyst</option>
+                <option value="SQL Database Developer" {% if current_data.preferred_job_type == 'SQL Database Developer' %}selected{% endif %}>SQL Database Developer</option>
+                <option value="WordPress Developer" {% if current_data.preferred_job_type == 'WordPress Developer' %}selected{% endif %}>WordPress Developer</option>
+            </select>
+        </div>
+
+        <div class="action-group">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-cancel">Cancel</a>
+            <button type="submit" class="btn btn-save"><i class="fas fa-check-circle"></i> Save Profile</button>
+        </div>
+    </form>
+</div>
+</body>
+</html>
