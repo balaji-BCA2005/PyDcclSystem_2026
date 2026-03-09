@@ -52,7 +52,7 @@
 
         <div class="input-group full-width">
             <label>Full Name</label>
-            <input type="text" name="full_name" value="{{ current_data.full_name or '' }}" required placeholder="Enter your full name">
+            <input type="text" name="full_name" value="{{ current_data.full_name or '' }}" required>
         </div>
 
         <div class="section-title">Academic Background</div>
@@ -74,7 +74,7 @@
 
         <div class="input-group">
             <label>Specialization</label>
-            <input type="text" name="specialization" value="{{ current_data.specialization or '' }}" placeholder="e.g. Computer Science" required>
+            <input type="text" name="specialization" value="{{ current_data.specialization or '' }}" required>
         </div>
 
         <div class="input-group">
@@ -99,24 +99,24 @@
 
         <div class="input-group">
             <label>Current CGPA</label>
-            <input type="number" step="0.01" name="cgpa" value="{{ current_data.cgpa or '' }}" placeholder="e.g. 8.5" required>
+            <input type="number" step="0.01" name="cgpa" value="{{ current_data.cgpa or '' }}" required>
         </div>
 
         <div class="input-group">
             <label>Passing Year</label>
-            <input type="number" name="passing_year" value="{{ current_data.passing_year or '' }}" placeholder="e.g. 2026" required>
+            <input type="number" name="passing_year" value="{{ current_data.passing_year or '' }}" required>
         </div>
 
         <div class="section-title">Skills & Experience</div>
 
         <div class="input-group full-width highlight-input">
             <label>Technical Skills (Comma Separated)</label>
-            <input type="text" name="technical_skills" value="{{ current_data.technical_skills or '' }}" placeholder="e.g. PYTHON, REACT, SQL" required>
+            <input type="text" name="technical_skills" value="{{ current_data.technical_skills or '' }}" required>
         </div>
 
         <div class="input-group full-width">
             <label>Key Projects</label>
-            <textarea name="projects" placeholder="Briefly describe your top 2 projects..." required>{{ current_data.projects or '' }}</textarea>
+            <textarea name="projects" required>{{ current_data.projects or '' }}</textarea>
         </div>
 
         <div class="input-group">
