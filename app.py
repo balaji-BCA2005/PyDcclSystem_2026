@@ -115,11 +115,8 @@ def profile():
     if request.method == 'POST':
         full_name = request.form.get('full_name')
         degree = request.form.get('degree')
-        
-        # 👇 YE DO LINES TUMHARE CODE MEIN MISSING THI 👇
         current_year = request.form.get('current_year') 
         division = request.form.get('division')
-        
         specialization = request.form.get('specialization')
         cgpa = request.form.get('cgpa')
         passing_year = request.form.get('passing_year')
@@ -128,7 +125,6 @@ def profile():
         internship_exp = request.form.get('internship_exp')
         job_type = request.form.get('preferred_job_type')
         
-        # 👇 UPDATE QUERY MEIN BHI current_year AUR division ADD KIYA HAI 👇
         cursor.execute("""
             UPDATE students SET 
             full_name=%s, degree=%s, specialization=%s, cgpa=%s,
@@ -281,170 +277,6 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-@app.route('/admin_login', methods=['GET', 'POST'])
-def admin_login():
-    if 'admin_id' in session:
-        return redirect(url_for('admin_dashboard'))
-    error = ""
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        conn = db.get_db_connection()
-        if conn:
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute("SELECT * FROM admins WHERE username = %s", (username,))
-            admin = cursor.fetchone()
-            if admin:
-                if password == admin['password']:
-                    session['admin_id'] = admin['id']
-                    session['admin_username'] = admin['username']
-                    cursor.close()
-                    conn.close()
-                    return redirect(url_for('admin_dashboard'))
-                else:
-                    error = "Incorrect Password!"
-            else:
-                error = "Admin Username not found!"
-            cursor.close()
-            conn.close()
-    return render_template('admin_login.html', error=error)
-
-@app.route('/admin_dashboard')
-def admin_dashboard():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    conn = db.get_db_connection()
-    if not conn:
-        return "Database error"
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT COUNT(*) as count FROM students")
-    total_students = cursor.fetchone()['count'] or 0
-    cursor.execute("SELECT COUNT(*) as count FROM companies")
-    total_companies = cursor.fetchone()['count'] or 0
-    cursor.execute("SELECT COUNT(*) as count FROM results")
-    total_exams = cursor.fetchone()['count'] or 0
-    cursor.execute("SELECT AVG((score/20)*100) as avg_score FROM results")
-    avg_data = cursor.fetchone()
-    avg_score = round(float(avg_data['avg_score']), 2) if avg_data and avg_data['avg_score'] else 0
-    cursor.execute("""
-        SELECT r.score, r.percentage, r.pass_fail_status, r.timestamp, 
-               s.full_name, s.current_year, s.division, s.degree, c.company_name 
-        FROM results r 
-        JOIN students s ON r.student_id = s.id 
-        JOIN companies c ON r.job_id = c.id 
-        ORDER BY r.timestamp DESC LIMIT 5
-    """)
-    recent_tests = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('admin_dashboard.html', 
-                           total_students=total_students, 
-                           total_companies=total_companies, 
-                           total_exams=total_exams, 
-                           avg_score=avg_score, 
-                           recent_tests=recent_tests)
-
-@app.route('/manage_students')
-def manage_students():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    conn = db.get_db_connection()
-    if not conn:
-        return "Database error"
-    cursor = conn.cursor(dictionary=True)
-    msg = request.args.get('msg')
-    if request.args.get('delete'):
-        del_id = request.args.get('delete')
-        cursor.execute("DELETE FROM students WHERE id = %s", (del_id,))
-        cursor.execute("DELETE FROM results WHERE student_id = %s", (del_id,))
-        conn.commit()
-        cursor.close()
-        conn.close()
-        return redirect(url_for('manage_students', msg='deleted'))
-    cursor.execute("SELECT * FROM students ORDER BY id DESC")
-    students = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('manage_students.html', students=students, msg=msg)
-
-@app.route('/manage_companies', methods=['GET', 'POST'])
-def manage_companies():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    conn = db.get_db_connection()
-    if not conn:
-        return "Database error"
-    cursor = conn.cursor(dictionary=True)
-    msg = request.args.get('msg')
-    error = None
-    if request.args.get('delete'):
-        del_id = request.args.get('delete')
-        cursor.execute("DELETE FROM companies WHERE id = %s", (del_id,))
-        cursor.execute("DELETE FROM results WHERE job_id = %s", (del_id,))
-        conn.commit()
-        return redirect(url_for('manage_companies', msg='deleted'))
-    if request.method == 'POST' and 'add_company' in request.form:
-        c_name = request.form['company_name']
-        j_role = request.form['job_role']
-        req_cgpa = request.form['required_cgpa']
-        skills = request.form['required_skills'].upper()
-        salary = request.form['salary_package']
-        location = request.form['location']
-        experience = request.form['experience_req']
-        try:
-            cursor.execute("""
-                INSERT INTO companies (company_name, job_role, required_cgpa, required_skills, salary_package, location, experience_req) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """, (c_name, j_role, req_cgpa, skills, salary, location, experience))
-            conn.commit()
-            return redirect(url_for('manage_companies', msg='added'))
-        except Exception as e:
-            error = f"Error adding company: {e}"
-    cursor.execute("SELECT * FROM companies ORDER BY id DESC")
-    companies = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('manage_companies.html', companies=companies, msg=msg, error=error)
-
-@app.route('/manage_questions', methods=['GET', 'POST'])
-def manage_questions():
-    if 'admin_id' not in session:
-        return redirect(url_for('admin_login'))
-    conn = db.get_db_connection()
-    if not conn:
-        return "Database error"
-    cursor = conn.cursor(dictionary=True)
-    msg = request.args.get('msg')
-    error = None
-    if request.args.get('delete'):
-        del_id = request.args.get('delete')
-        cursor.execute("DELETE FROM questions WHERE id = %s", (del_id,))
-        conn.commit()
-        return redirect(url_for('manage_questions', msg='deleted'))
-    if request.method == 'POST' and 'add_question' in request.form:
-        q_text = request.form['question_text']
-        opt_a = request.form['option_a']
-        opt_b = request.form['option_b']
-        opt_c = request.form['option_c']
-        opt_d = request.form['option_d']
-        correct = request.form['correct_option']
-        category = request.form['category']
-        skill_tag = request.form['skill_tag'].upper()
-        try:
-            cursor.execute("""
-                INSERT INTO questions (question_text, option_a, option_b, option_c, option_d, correct_option, category, skill_tag) 
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (q_text, opt_a, opt_b, opt_c, opt_d, correct, category, skill_tag))
-            conn.commit()
-            return redirect(url_for('manage_questions', msg='added'))
-        except Exception as e:
-            error = f"Error adding question: {e}"
-    cursor.execute("SELECT * FROM questions ORDER BY id DESC")
-    questions = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return render_template('manage_questions.html', questions=questions, msg=msg, error=error)
-
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     step = 1
@@ -455,20 +287,15 @@ def forgot_password():
         cursor = conn.cursor(dictionary=True)
         if 'check_user' in request.form:
             login_input = request.form['login_input'].strip()
-            role = request.form['role']
-            table = 'admins' if role == 'admin' else 'students'
-            column = 'username' if role == 'admin' else 'email'
-            cursor.execute(f"SELECT id, sec_ans1, sec_ans2, sec_ans3 FROM {table} WHERE {column} = %s", (login_input,))
+            # Yahan se role aur admin check hata diya
+            cursor.execute("SELECT id, sec_ans1, sec_ans2, sec_ans3 FROM students WHERE email = %s", (login_input,))
             user = cursor.fetchone()
             if user:
                 session['reset_id'] = login_input
-                session['reset_role'] = role
-                session['reset_table'] = table
-                session['reset_column'] = column
                 session['db_answers'] = [user['sec_ans1'], user['sec_ans2'], user['sec_ans3']]
                 step = 2
             else:
-                error = "Account not found in selected role!"
+                error = "Account not found!"
         elif 'verify_answers' in request.form:
             ans1 = request.form['ans1'].strip().lower()
             ans2 = request.form['ans2'].strip().lower()
@@ -480,31 +307,17 @@ def forgot_password():
                 error = "Security answers are incorrect!"
                 step = 2
         elif 'update_password' in request.form:
-            role = session.get('reset_role')
-            table = session.get('reset_table')
-            column = session.get('reset_column')
             login_id = session.get('reset_id')
-            if role == 'admin':
-                new_password = request.form['new_password']
-            else:
-                new_password = bcrypt.hashpw(request.form['new_password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-            cursor.execute(f"UPDATE {table} SET password = %s WHERE {column} = %s", (new_password, login_id))
+            new_password = bcrypt.hashpw(request.form['new_password'].encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cursor.execute("UPDATE students SET password = %s WHERE email = %s", (new_password, login_id))
             conn.commit()
             success = "Password reset successfully! You can login now."
             session.pop('reset_id', None)
-            session.pop('reset_role', None)
-            session.pop('reset_table', None)
-            session.pop('reset_column', None)
             session.pop('db_answers', None)
             step = 1
         cursor.close()
         conn.close()
     return render_template('forgot_password.html', step=step, error=error, success=success)
-
-@app.route('/admin_logout')
-def admin_logout():
-    session.clear()
-    return redirect(url_for('index'))
 
 if __name__ == "__main__":
     app.run(debug=True)
