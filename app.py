@@ -151,27 +151,6 @@ def profile():
     conn.close()
     return render_template('profile.html', current_data=current_data, error=error)
 
-@app.route('/generate_resume')
-def generate_resume():
-    if 'student_id' not in session:
-        return redirect(url_for('login'))
-    student_id = session['student_id']
-    conn = db.get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM students WHERE id=%s",(student_id,))
-    student = cursor.fetchone()
-    cursor.execute("""
-        SELECT r.score, r.percentage, r.pass_fail_status, r.timestamp, c.company_name
-        FROM results r
-        LEFT JOIN companies c ON r.job_id=c.id
-        WHERE r.student_id=%s
-        ORDER BY r.timestamp DESC LIMIT 1
-    """,(student_id,))
-    latest_result = cursor.fetchone()
-    skills_array=[s.strip() for s in student.get('technical_skills','Not Updated').split(',')]
-    cursor.close()
-    conn.close()
-    return render_template('generate_resume.html',student=student,latest_result=latest_result,skills_array=skills_array)
 
 @app.route('/quiz')
 def quiz():
