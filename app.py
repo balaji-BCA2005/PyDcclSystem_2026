@@ -49,9 +49,11 @@ def register():
         email = request.form['email']
         password = request.form['password'].encode('utf-8')
         hashed_password = bcrypt.hashpw(password, bcrypt.gensalt()).decode('utf-8')
+        
+        # FIX: Only sec_ans1 and sec_ans3
         sec_ans1 = request.form['sec_ans1'].strip().lower()
-        sec_ans2 = request.form['sec_ans2'].strip().lower()
         sec_ans3 = request.form['sec_ans3'].strip().lower()
+        
         conn = db.get_db_connection()
         if conn:
             cursor = conn.cursor(dictionary=True)
@@ -59,11 +61,12 @@ def register():
             if cursor.fetchone():
                 error = "Email already registered!"
             else:
+                # FIX: Removed sec_ans2 from the INSERT query
                 cursor.execute("""
                     INSERT INTO students 
-                    (full_name,email,password,sec_ans1,sec_ans2,sec_ans3)
-                    VALUES (%s,%s,%s,%s,%s,%s)
-                """, (full_name, email, hashed_password, sec_ans1, sec_ans2, sec_ans3))
+                    (full_name,email,password,sec_ans1,sec_ans3)
+                    VALUES (%s,%s,%s,%s,%s)
+                """, (full_name, email, hashed_password, sec_ans1, sec_ans3))
                 conn.commit()
                 cursor.close()
                 conn.close()
@@ -287,21 +290,21 @@ def forgot_password():
         cursor = conn.cursor(dictionary=True)
         if 'check_user' in request.form:
             login_input = request.form['login_input'].strip()
-            # Yahan se role aur admin check hata diya
-            cursor.execute("SELECT id, sec_ans1, sec_ans2, sec_ans3 FROM students WHERE email = %s", (login_input,))
+            # FIX: Only sec_ans1 and sec_ans3 queried
+            cursor.execute("SELECT id, sec_ans1, sec_ans3 FROM students WHERE email = %s", (login_input,))
             user = cursor.fetchone()
             if user:
                 session['reset_id'] = login_input
-                session['db_answers'] = [user['sec_ans1'], user['sec_ans2'], user['sec_ans3']]
+                session['db_answers'] = [user['sec_ans1'], user['sec_ans3']]
                 step = 2
             else:
                 error = "Account not found!"
         elif 'verify_answers' in request.form:
             ans1 = request.form['ans1'].strip().lower()
-            ans2 = request.form['ans2'].strip().lower()
             ans3 = request.form['ans3'].strip().lower()
             db_answers = session.get('db_answers', [])
-            if len(db_answers) == 3 and ans1 == db_answers[0].lower() and ans2 == db_answers[1].lower() and ans3 == db_answers[2].lower():
+            # FIX: Only checking 2 answers here
+            if len(db_answers) == 2 and ans1 == db_answers[0].lower() and ans3 == db_answers[1].lower():
                 step = 3
             else:
                 error = "Security answers are incorrect!"
